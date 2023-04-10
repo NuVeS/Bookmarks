@@ -1,0 +1,309 @@
+openapi: 3.0.0
+info:
+  version: 'v1'
+  title: 'Bookmark'
+  description: 'API for boormark service on GO'
+paths:
+  /register:
+    post:
+      tags:
+        - auth
+      operationId: register
+      summary: Register new user
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      responses:
+        200:
+          description: Success. Returns auth token
+          content: 
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/TokenResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /login:
+    post:
+      tags:
+        - auth
+      operationId: login
+      summary: Login user using login and password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        200: 
+          description: Success. Returns auth token
+          content: 
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/TokenResponse'
+        400:
+          description: Error logging in with error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /logout:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - auth
+      operationId: logout
+      summary: Logout user using token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        200: 
+          description: Success. Returns auth token
+          content: 
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/TokenResponse'
+        400:
+          description: Error logging in with error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /bookmarks:
+    get: 
+      tags:
+        - bookmarks
+      security:
+        - bearerAuth: []
+      operationId: getBookmarks
+      summary: Get user Bookmarks list with pagination
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/GetBookmarksRequest'
+        required: true
+      responses:
+        200:
+          description: Success. Returns Bookmark list
+          content: 
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/BookmarkListResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - bookmarks
+      operationId: Add Bookmark
+      summary: Add new Bookmark
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/BookmarkRequest'
+        required: true
+      responses:
+        200:
+          description: Success
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - bookmarks
+      operationId: deleteBookmark
+      summary: Delete Bookmark by id
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/IDRequest'
+        required: true
+      responses:
+        200:
+          description: Success
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /tags:
+    get: 
+      security:
+          - bearerAuth: []
+      tags:
+        - bookmarks
+      operationId: getTags
+      summary: Get list of user tags
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagListResponse"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /search:
+    post:
+      security:
+          - bearerAuth: []
+      tags:
+        - bookmarks
+      operationId: search
+      summary: Search by query. Method searches tags and texts
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookmarkListResponse"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:            
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [login, password, repeatPassword]
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+        repeatPassword:
+          type: string
+    LoginRequest:
+      type: object
+      required: [login, password]
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+    GetBookmarksRequest:
+      type: object
+      required: [page, offset]
+      properties:
+        page:
+          type: integer
+        offset:
+          type: integer
+    BookmarkRequest:
+      type: object
+      required: [title, text, tags]
+      properties:
+        title:
+          type: string
+        text: 
+          type: string
+        tags: 
+          type: array
+          items: 
+            type: string
+    IDRequest:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+    SearchRequest:
+      type: object
+      required: [type, query]
+      properties:
+        query:
+          type: string
+        type: 
+          type: string
+
+
+    BookmarkResponse:
+      type: object
+      required: [id, title, text, tags]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        text: 
+          type: string
+        tags: 
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+    TagResponse:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    TagListResponse:
+      type: object
+      required: [tags]
+      properties:
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+    TokenResponse:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+    ErrorResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+    BookmarkListResponse:
+      type: object
+      required: [bookmarks]
+      properties:
+        bookmarks:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookmarkResponse'
