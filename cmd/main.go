@@ -8,19 +8,19 @@ import (
 
 	"Bookmarks/cmd/router"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
-	databaseUrl := "postgres://admin:123456@localhost:5432/postgres"
-	conn, err := pgx.Connect(context.Background(), databaseUrl)
+	databaseUrl := "postgres://admin:123456@localhost:5432/bookmarks"
+	conn, err := pgxpool.New(context.Background(), databaseUrl)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
-	defer conn.Close(context.Background())
+	defer conn.Close()
 
-	r := router.NewRouter()
+	r := router.NewRouter(conn)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("welcome"))
 	})
